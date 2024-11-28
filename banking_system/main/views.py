@@ -10,7 +10,8 @@ from decimal import Decimal
 from django.views.decorators.cache import cache_control
 from django.contrib.auth.hashers import check_password
 from django.db import connection
-
+from django.core.mail import send_mail
+from django.conf import settings
 
 def logout_view(request):
     if request.user.is_authenticated:
@@ -82,19 +83,53 @@ def login_view(request):
 def update_user(request):
     if request.user.is_authenticated:
         if request.method == 'POST':
+    # Get form data
             first_name = request.POST.get('first_name')
             last_name = request.POST.get('last_name')
             email = request.POST.get('email')
             gender = request.POST.get('gender')
             phone_number = request.POST.get('phone_number')
+
+            # Update user details
             user = request.user
-            user.first_name=first_name
-            user.last_name=last_name
-            user.email=email
-            user.gender=gender
-            user.phone_number=phone_number
+            user.first_name = first_name
+            user.last_name = last_name
+            user.email = email
+            user.gender = gender
+            user.phone_number = phone_number
+            user.email_customer = email  # Assuming `email_customer` is a separate field
             user.save()
+
+            # Send success message
             messages.success(request, 'Your details have been updated successfully!')
+
+            # Prepare email content with updated fields
+            email_subject = 'Profile Updation Details'
+            email_message = f"""
+            Dear {first_name},
+
+            Your profile has been updated successfully! Here are your updated details:
+
+            First Name: {first_name}
+            Last Name: {last_name}
+            Email: {email}
+            Gender: {gender}
+            Phone Number: {phone_number}
+
+            If you did not request these changes, please contact us immediately.
+
+            Regards,
+            TVK BANK
+            """
+
+            # Send email with updated details
+            send_mail(
+                email_subject,
+                email_message,
+                settings.EMAIL_HOST_USER,
+                [email]
+            )
+
             return redirect('dashboard')
 
     else:
@@ -139,6 +174,8 @@ def create_transaction(request):
                 )
 
                 messages.success(request, f'Transaction completed successfully! {transaction}')
+                send_mail('Transaction Details', f'Transaction completed successfully!\nAmount : {transaction.amount} from user {transaction.sender}.\nYour Current balance! {receiver.balance}.', settings.EMAIL_HOST_USER, [receiver.email_customer])
+                send_mail('Transaction Details', f'Transaction completed successfully!\nAmount : {transaction.amount} to user {transaction.receiver}.\nYour Current balance! {sender.balance}', settings.EMAIL_HOST_USER, [sender.email_customer])
                 return redirect('dashboard')  
             else:
                 messages.error(request, 'Insufficient balance. Minimum balance of 500 must be maintained.')

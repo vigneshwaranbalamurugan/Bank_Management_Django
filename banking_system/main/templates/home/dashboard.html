@@ -1,24 +1,34 @@
-{%load static%}
+{% load static %}
 <!DOCTYPE html>
 <html>
 <head>
     <title>Dashboard</title>
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        .container {
+            display: none;
+        }
+        /* Initially show the dashboard by default */
+        #dashboard {
+            display: block;
+        }
+    </style>
 </head>
 <body>
     <header>
         <nav id="navbar">
             <ul>
                 <li><a style="font-weight: bolder;">Welcome, {{user.Customer_name}}</a></li>
-                <li><a href="#dashboard">Dashboard</a></li>
-                <li><a href="#update">Update</a></li>
-                <li><a href="#transaction">Transaction</a></li>
-                <li><a href="/transaction_history" id="contact-link">Transaction History</a></li>
+                <li><a href="#" class="nav-link" data-target="dashboard">Dashboard</a></li>
+                <li><a href="#" class="nav-link" data-target="update">Update</a></li>
+                <li><a href="#" class="nav-link" data-target="transaction">Transaction</a></li>
+                <li><a href="/transaction_history" class="nav-link" data-target="transaction-history">Transaction History</a></li>
                 <li><a href="/logout">Logout</a></li>
             </ul>
         </nav>
     </header>
+
     {% if messages %}
         <div class="messages">
             {% for message in messages %}
@@ -26,48 +36,47 @@
             {% endfor %}
         </div>
     {% endif %}
+
+    <!-- Dashboard Section -->
     <div class="container" id="dashboard">
         <div class="user-info">
             <h2>Welcome, {{ user.Customer_name }}!</h2>
             <p><i class="fas fa-user"></i> User ID: {{ user.id }}</p>
-
             <p><i class="fas fa-user"></i> First Name: {{ user.first_name }}</p>
             <p><i class="fas fa-user"></i> Last Name: {{ user.last_name }}</p>
             <p><i class="fas fa-envelope"></i> Email: {{ user.email_customer }}</p>
             <p><i class="fas fa-venus-mars"></i> Gender: {% if user.gender == 'M' %}Male{% else %}Female{% endif %}</p>
             <p><i class="fas fa-wallet"></i> Balance: {{ user.balance }}</p>
             <p><i class="fas fa-wallet"></i> Branch: {{ user.branch_name }}</p>
-
             <p><i class="fas fa-phone"></i> Phone Number: {{ user.phone_number }}</p>
         </div>
     </div>
-        <div class="container" id="update">
-            <div class="update-form">
-                <h2>Update Your Details</h2>
-                <form method="post" action="/update_user">
-                    {% csrf_token %}
-                    <label for="first_name"><i class="fas fa-user"></i> First Name:</label>
-                    <input type="text" id="first_name" name="first_name" value="{{ user.first_name }}" required>
-                    
-                    <label for="last_name"><i class="fas fa-user"></i> Last Name:</label>
-                    <input type="text" id="last_name" name="last_name" value="{{ user.last_name }}" required>
-                    
-                    <label for="email"><i class="fas fa-envelope"></i> Email:</label>
-                    <input type="email" id="email" name="email" value="{{ user.email_customer }}" required>
-                    
-                    <label for="gender"><i class="fas fa-venus-mars"></i> Gender:</label>
-                    <select id="gender" name="gender" required>
-                        <option value="M" {% if user.gender == 'M' %}selected{% endif %}>Male</option>
-                        <option value="F" {% if user.gender == 'F' %}selected{% endif %}>Female</option>
-                    </select>
-                    
-                    <label for="phone_number"><i class="fas fa-phone"></i> Phone Number:</label>
-                    <input type="text" id="phone_number" name="phone_number" value="{{ user.phone_number }}" required>
-                    
-                    <button type="submit" style="margin-top: 20px; padding: 10px 20px; background-color: #388E3C; color: #fff; border: none; border-radius: 5px;">Update</button>
-                </form>
-            </div>
+
+    <!-- Update Section -->
+    <div class="container" id="update">
+        <div class="update-form">
+            <h2>Update Your Details</h2>
+            <form method="post" action="/update_user">
+                {% csrf_token %}
+                <label for="first_name"><i class="fas fa-user"></i> First Name:</label>
+                <input type="text" id="first_name" name="first_name" value="{{ user.first_name }}" required>
+                <label for="last_name"><i class="fas fa-user"></i> Last Name:</label>
+                <input type="text" id="last_name" name="last_name" value="{{ user.last_name }}" required>
+                <label for="email"><i class="fas fa-envelope"></i> Email:</label>
+                <input type="email" id="email" name="email" value="{{ user.email_customer }}" required>
+                <label for="gender"><i class="fas fa-venus-mars"></i> Gender:</label>
+                <select id="gender" name="gender" required>
+                    <option value="M" {% if user.gender == 'M' %}selected{% endif %}>Male</option>
+                    <option value="F" {% if user.gender == 'F' %}selected{% endif %}>Female</option>
+                </select>
+                <label for="phone_number"><i class="fas fa-phone"></i> Phone Number:</label>
+                <input type="text" id="phone_number" name="phone_number" value="{{ user.phone_number }}" required>
+                <button type="submit" style="margin-top: 20px; padding: 10px 20px; background-color: #388E3C; color: #fff; border: none; border-radius: 5px;">Update</button>
+            </form>
+        </div>
     </div>
+
+    <!-- Transaction Section -->
     <div class="container" id="transaction">
         <div class="transaction-form">
             <h2>Create a New Transaction</h2>
@@ -75,25 +84,28 @@
                 {% csrf_token %}
                 <label for="receiver_id"><i class="fas fa-user"></i> Receiver ID:</label>
                 <input type="text" id="receiver_id" name="receiver_id" required>
-                
                 <label for="amount"><i class="fas fa-money-bill"></i> Amount:</label>
                 <input type="number" id="amount" name="amount" required min="0">
-                
                 <button type="submit">Submit</button>
             </form>
         </div>
     </div>
+
     {% if transactions %}
-    <div class="transaction-history">
+    <div class="container transaction-history" id="transaction_history">
         <h2>Transaction History</h2>
-        <table>
+        <button id="download-pdf" class="btn btn-primary">Download Transaction PDF</button>
+        <button id="send-pdf" class="btn btn-primary">Send Email</button>
+
+        <table class="table table-striped">
             <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>Sender</th>
-                    <th>Receiver</th>
-                    <th>Amount</th>
-                    <th>Date</th>
+                    <th><i class="fas fa-id-badge"></i> ID</th>
+                    <th><i class="fas fa-user"></i> Sender</th>
+                    <th><i class="fas fa-user"></i> Receiver</th>
+                    <th><i class="fas fa-dollar-sign"></i> Amount</th>
+                    <th><i class="fas fa-calendar-alt"></i> Date</th>
+                    <th><i class="fas fa-exchange-alt"></i> Type</th>
                 </tr>
             </thead>
             <tbody>
@@ -104,19 +116,365 @@
                         <td>{{ transaction.receiver.Customer_name }}</td>
                         <td>{{ transaction.amount }}</td>
                         <td>{{ transaction.date }}</td>
+                        <td>
+                            {% if transaction.sender.Customer_name == user.Customer_name %}
+                                <i class="fas fa-arrow-up text-danger"></i> Debit
+                            {% else %}
+                                <i class="fas fa-arrow-down text-success"></i> Credit
+                            {% endif %}
+                        </td>
                     </tr>
                 {% endfor %}
             </tbody>
         </table>
+        <h3>Transaction Analysis</h3>
+        <canvas id="transactionChart" width="400" height="200"></canvas>
     </div>
-    {%endif%}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <script>
+        const transactions = [
+            {% for transaction in transactions %}
+            {
+                "transaction_id": {{ transaction.transaction_id }},
+                "sender": {
+                    "Customer_name": "{{ transaction.sender.Customer_name }}"
+                },
+                "receiver": {
+                    "Customer_name": "{{ transaction.receiver.Customer_name }}"
+                },
+                "amount": {{ transaction.amount }},
+                "date": "{{ transaction.date }}"
+            }
+            {% if not loop.last %},{% endif %}
+            {% endfor %}
+        ];
+    
+        // Initialize variables for analytics
+        let totalSent = 0;
+        let totalReceived = 0;
+        let debitCount = 0;
+        let creditCount = 0;
+        let userSent = 0;
+        let userReceived = 0;
+    
+        // Collect transaction totals for the current user
+        transactions.forEach(transaction => {
+            if (transaction.sender.Customer_name == '{{ user.Customer_name }}') {
+                userSent += transaction.amount;
+                debitCount++;
+            } else {
+                userReceived += transaction.amount;
+                creditCount++;
+            }
+            
+            totalSent += transaction.amount;
+            totalReceived += transaction.amount;
+        });
+    
+        // Prepare data for the chart
+        const data = {
+            labels: ['Sent', 'Received', 'User Sent', 'User Received'], // Include both totals and user-specific data
+            datasets: [{
+                label: 'Transaction Amounts',
+                data: [totalSent, totalReceived, userSent, userReceived], // Show both overall and user-specific data
+                backgroundColor: ['rgba(255, 99, 132, 0.2)', 'rgba(54, 162, 235, 0.2)', 'rgba(255, 159, 64, 0.2)', 'rgba(75, 192, 192, 0.2)'],
+                borderColor: ['rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)', 'rgba(255, 159, 64, 1)', 'rgba(75, 192, 192, 1)'],
+                borderWidth: 1
+            }]
+        };
+    
+        // Create the bar chart
+        const ctx = document.getElementById('transactionChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar', // You can change 'bar' to other types like 'pie', 'line', etc.
+            data: data,
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                return `${tooltipItem.label}: $${tooltipItem.raw.toFixed(2)}`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    
+        // Optional: Create a time-based line chart if you want to show trends over time
+        const timeLabels = []; // You can generate this dynamically based on your transaction dates
+        const sentAmounts = [];
+        const receivedAmounts = [];
+    
+        // Create time-based data
+        transactions.forEach(transaction => {
+            timeLabels.push(transaction.date);
+            sentAmounts.push(transaction.sender.Customer_name === '{{ user.Customer_name }}' ? transaction.amount : 0);
+            receivedAmounts.push(transaction.receiver.Customer_name === '{{ user.Customer_name }}' ? transaction.amount : 0);
+        });
+    
+        // Create the line chart (optional)
+        const lineData = {
+            labels: timeLabels,
+            datasets: [
+                {
+                    label: 'User Sent Over Time',
+                    data: sentAmounts,
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    fill: false,
+                    tension: 0.1
+                },
+                {
+                    label: 'User Received Over Time',
+                    data: receivedAmounts,
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    fill: false,
+                    tension: 0.1
+                }
+            ]
+        };
+    
+        const lineCtx = document.getElementById('timeChart').getContext('2d');
+        new Chart(lineCtx, {
+            type: 'line',
+            data: lineData,
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Date'
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Amount ($)'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                return `${tooltipItem.dataset.label}: $${tooltipItem.raw.toFixed(2)}`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    
+    </script>
+    
+{% endif %}
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <script>
+      
+    document.getElementById("download-pdf").addEventListener("click", function() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        // User Information
+        doc.setFontSize(14);
+        doc.text("User Information", 10, 10);
+        doc.setFontSize(12);
+        doc.text(`First Name: {{ user.first_name }}`, 10, 20);
+        doc.text(`Last Name: {{ user.last_name }}`, 10, 30);
+        doc.text(`Email: {{ user.email_customer }}`, 10, 40);
+        doc.text(`Gender: {% if user.gender == 'M' %}Male{% else %}Female{% endif %}`, 10, 50);
+        doc.text(`Balance: {{ user.balance }}`, 10, 60);
+        doc.text(`Branch: {{ user.branch_name }}`, 10, 70);
+        doc.text(`Phone Number: {{ user.phone_number }}`, 10, 80);
+
+        // Add underline
+        doc.line(10, 85, 200, 85);
+
+        // Transaction History Heading
+        doc.setFontSize(14);
+        doc.text("Transaction History", 10, 95);
+        doc.setFontSize(12);
+
+        // Column Headers
+        doc.text("ID", 10, 105);
+        doc.text("Sender", 30, 105);
+        doc.text("Receiver", 70, 105);
+        doc.text("Amount", 110, 105);
+        doc.text("Date", 140, 105);
+        doc.text("Time", 170, 105);
+        
+        // Adding line below headers
+        doc.line(10, 108, 200, 108);
+
+        // Starting position for transaction rows
+        let yPosition = 115;
+
+        // Loop through each transaction
+        {% for transaction in transactions %}
+            doc.text("{{ transaction.transaction_id }}", 10, yPosition);
+            doc.text("{{ transaction.sender.Customer_name }}", 30, yPosition);
+            doc.text("{{ transaction.receiver.Customer_name }}", 70, yPosition);
+            doc.text("{{ transaction.amount }}", 110, yPosition);
+            doc.text("{{ transaction.date }}", 140, yPosition);
+
+            // Increment yPosition for the next row
+            yPosition += 10;
+
+            // Check if yPosition is at the end of the page
+            if (yPosition > 280) {
+                doc.addPage(); // Add a new page
+                yPosition = 20; // Reset y position for the new page
+            }
+        {% endfor %}
+
+        // Save the PDF
+        const filename = `Transaction_History_${new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)}.pdf`;
+doc.save(filename);
+         
+    });
+   
+    document.getElementById("send-pdf").addEventListener("click", function() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        // User Information
+        doc.setFontSize(14);
+        doc.text("User Information", 10, 10);
+        doc.setFontSize(12);
+        doc.text(`First Name: {{ user.first_name }}`, 10, 20);
+        doc.text(`Last Name: {{ user.last_name }}`, 10, 30);
+        doc.text(`Email: {{ user.email_customer }}`, 10, 40);
+        doc.text(`Gender: {% if user.gender == 'M' %}Male{% else %}Female{% endif %}`, 10, 50);
+        doc.text(`Balance: {{ user.balance }}`, 10, 60);
+        doc.text(`Branch: {{ user.branch_name }}`, 10, 70);
+        doc.text(`Phone Number: {{ user.phone_number }}`, 10, 80);
+
+        // Add underline
+        doc.line(10, 85, 200, 85);
+
+        // Transaction History Heading
+        doc.setFontSize(14);
+        doc.text("Transaction History", 10, 95);
+        doc.setFontSize(12);
+
+        // Column Headers
+        doc.text("ID", 10, 105);
+        doc.text("Sender", 30, 105);
+        doc.text("Receiver", 70, 105);
+        doc.text("Amount", 110, 105);
+        doc.text("Date", 140, 105);
+        doc.text("Time", 170, 105);
+        
+        // Adding line below headers
+        doc.line(10, 108, 200, 108);
+
+        // Starting position for transaction rows
+        let yPosition = 115;
+
+        // Loop through each transaction
+        {% for transaction in transactions %}
+            doc.text("{{ transaction.transaction_id }}", 10, yPosition);
+            doc.text("{{ transaction.sender.Customer_name }}", 30, yPosition);
+            doc.text("{{ transaction.receiver.Customer_name }}", 70, yPosition);
+            doc.text("{{ transaction.amount }}", 110, yPosition);
+            doc.text("{{ transaction.date }}", 140, yPosition);
+
+            // Increment yPosition for the next row
+            yPosition += 10;
+
+            // Check if yPosition is at the end of the page
+            if (yPosition > 280) {
+                doc.addPage(); // Add a new page
+                yPosition = 20; // Reset y position for the new page
+            }
+        {% endfor %}
+
+        // Save the PDF
+        const filename = `Transaction_History_${new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)}.pdf`;
+
+ const pdfBlob = doc.output("blob");
+    const formData = new FormData();
+    formData.append("pdf", pdfBlob, `${filename}`);
+
+    fetch(" http://127.0.0.1:5000/send-email", {
+        method: "POST",
+        body: formData,
+    })
+        .then((response) => {
+            if (response.ok) {
+                alert("Email sent successfully!");
+            } else {
+                alert("Failed to send email.");
+            }
+        })
+        .catch((error) => {
+            console.error("Error:", error);
+        });
+    });
+
+
+        // Function to hide all containers and display the selected one
+        function showSection(sectionId) {
+            var sections = document.querySelectorAll('.container');
+            sections.forEach(function(section) {
+                section.style.display = 'none';  // Hide all sections
+            });
+            document.getElementById(sectionId).style.display = 'block';  // Show the selected section
+        }
+
+        // Attach event listeners to nav links
+        var navLinks = document.querySelectorAll('.nav-link');
+        navLinks.forEach(function(link) {
+    link.addEventListener('click', function(event) {
+        event.preventDefault();  // Prevent default link behavior
+        var target = this.getAttribute('data-target');  // Get the target section
+
+        if (target === 'transaction-history') {
+            // Update the URL without reloading the page
+            window.history.pushState({}, '', '/transaction_history');
+            window.location.reload();
+        }
+        
+        showSection(target);  // Show the target section
+    });
+});
+
+        // On initial page load, check the URL to show the correct section
+        window.addEventListener('load', function() {
+            var path = window.location.pathname.split('/').pop();  // Get the last part of the URL
+            if (path) {
+                showSection(path);  // Show the section based on the URL path
+            } else {
+                showSection('dashboard');  // Default to dashboard if no specific section
+            }
+        });
+
+        // Hide messages after 10 seconds
         setTimeout(function() {
             var messages = document.querySelectorAll('.alert');
             messages.forEach(function(message) {
                 message.style.display = 'none';
             });
-        }, 10000); 
+        }, 10000);
+
     </script>
 </body>
 </html>
